@@ -1,0 +1,174 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.11.0@OPROJECT_VERSION_RELEASE_TYPE@
+# options: 
+shader avocado_texture1
+param	float	Kd	0.800000012		%read{34,34} %write{2147483647,-1}
+param	float	Ks	0.0799999982		%read{18,35} %write{2147483647,-1}
+param	float	roughness	0.600000024		%read{39,48} %write{2147483647,-1}
+param	float	noise_scale	0.200000003		%read{3,29} %write{2147483647,-1}
+param	float	subsurface_amount	0.200000003		%read{42,42} %write{2147483647,-1}
+param	string	envmap	""		%read{2147483647,-1} %write{2147483647,-1}
+param	string	color_texture	""		%read{14,16} %write{2147483647,-1}
+param	string	spec_texture	""		%read{19,21} %write{2147483647,-1}
+param	string	norm_texture	""		%read{23,25} %write{2147483647,-1}
+oparam	color	resultRGB	0 0 0		%read{2147483647,-1} %write{47,47}
+oparam	float	resultF	0		%read{2147483647,-1} %write{48,48}
+global	point	P	%read{3,6} %write{2147483647,-1}
+global	vector	I	%read{32,43} %write{2147483647,-1}
+global	normal	N	%read{22,43} %write{2147483647,-1}
+global	float	u	%read{0,0} %write{2147483647,-1} %derivs
+global	float	v	%read{1,1} %write{2147483647,-1} %derivs
+local	float	s	%read{16,25} %write{0,0} %derivs
+local	float	t	%read{16,25} %write{1,1} %derivs
+local	color	base_color	%read{10,34} %write{2,17}
+local	float	imperfection_noise	%read{9,9} %write{5,5}
+local	float	finer_noise	%read{9,9} %write{8,8}
+local	float	combined_noise	%read{11,11} %write{9,9}
+local	float	imperfection_blend	%read{13,13} %write{11,11}
+local	color	imperfection_color	%read{13,13} %write{12,12}
+local	color	___325_texture_color	%read{17,17} %write{16,16}
+local	color	spec_color	%read{35,35} %write{18,21}
+local	normal	n	%read{30,37} %write{22,31}
+local	normal	___327_n_map	%read{29,29} %write{28,28}
+local	vector	incident	%read{36,36} %write{33,33}
+local	color	diffuse_color	%read{42,46} %write{34,34}
+local	color	specular_color	%read{46,46} %write{41,41}
+local	color	subsurface_color	%read{47,47} %write{45,45}
+const	color	$const1	0.100000001 0.0700000003 0.100000001		%read{2,2} %write{2147483647,-1}
+temp	point	$tmp1	%read{4,4} %write{3,3}
+temp	point	$tmp2	%read{5,5} %write{4,4}
+const	float	$const3	150		%read{4,4} %write{2147483647,-1}
+temp	point	$tmp3	%read{7,7} %write{6,6}
+temp	point	$tmp4	%read{8,8} %write{7,7}
+const	float	$const5	200		%read{7,7} %write{2147483647,-1}
+const	float	$const6	0.5		%read{9,9} %write{2147483647,-1}
+const	color	$const7	0.100000001 0.0700000003 0		%read{10,10} %write{2147483647,-1}
+const	float	$const8	0.400000006		%read{11,11} %write{2147483647,-1}
+const	float	$const9	0.899999976		%read{11,11} %write{2147483647,-1}
+const	color	$const10	0.0500000007 0.0500000007 0		%read{12,12} %write{2147483647,-1}
+const	string	$const11	""		%read{14,23} %write{2147483647,-1}
+temp	int	$tmp6	%read{15,15} %write{14,14}
+const	float	$const13	0		%read{17,38} %write{2147483647,-1}
+temp	int	$tmp7	%read{20,20} %write{19,19}
+temp	int	$tmp8	%read{24,24} %write{23,23}
+temp	vector	$tmp9	%read{26,26} %write{25,25}
+const	float	$const14	2		%read{26,26} %write{2147483647,-1}
+temp	vector	$tmp10	%read{27,27} %write{26,26}
+const	float	$const15	1		%read{27,48} %write{2147483647,-1}
+temp	vector	$tmp11	%read{28,28} %write{27,27}
+temp	normal	$tmp12	%read{30,30} %write{29,29}
+temp	normal	$tmp13	%read{31,31} %write{30,30}
+temp	vector	$tmp14	%read{33,33} %write{32,32}
+temp	color	$tmp15	%read{41,41} %write{35,35}
+temp	float	$tmp16	%read{41,41} %write{40,40}
+temp	float	$tmp17	%read{40,40} %write{38,38}
+temp	float	$tmp18	%read{38,38} %write{37,37}
+temp	vector	$tmp19	%read{37,37} %write{36,36}
+temp	float	$tmp20	%read{40,40} %write{39,39}
+temp	color	$tmp21	%read{45,45} %write{42,42}
+temp	float	$tmp22	%read{44,44} %write{43,43}
+temp	float	$tmp23	%read{45,45} %write{44,44}
+temp	color	$tmp24	%read{47,47} %write{46,46}
+code ___main___
+# surface_shader2.osl:16
+#     float s = u;
+	assign		s u 	%filename{"surface_shader2.osl"} %line{16} %argrw{"wr"}
+# surface_shader2.osl:17
+#     float t = v;
+	assign		t v 	%line{17} %argrw{"wr"}
+# surface_shader2.osl:20
+#     color base_color = color(0.1, 0.07, 0.1);
+	assign		base_color $const1 	%line{20} %argrw{"wr"}
+# surface_shader2.osl:23
+#     float imperfection_noise = noise(P * noise_scale * 150);
+	mul		$tmp1 P noise_scale 	%line{23} %argrw{"wrr"}
+	mul		$tmp2 $tmp1 $const3 	%argrw{"wrr"}
+	noise		imperfection_noise $tmp2 	%argrw{"wr"}
+# surface_shader2.osl:24
+#     float finer_noise = noise(P * noise_scale * 200);
+	mul		$tmp3 P noise_scale 	%line{24} %argrw{"wrr"}
+	mul		$tmp4 $tmp3 $const5 	%argrw{"wrr"}
+	noise		finer_noise $tmp4 	%argrw{"wr"}
+# surface_shader2.osl:25
+#     float combined_noise = mix(imperfection_noise, finer_noise, 0.5);
+	mix		combined_noise imperfection_noise finer_noise $const6 	%line{25} %argrw{"wrrr"}
+# surface_shader2.osl:28
+#     base_color *= color(0.1, 0.07, 0.0); // Darker and more brownish green
+	mul		base_color base_color $const7 	%line{28} %argrw{"wrr"}
+# surface_shader2.osl:31
+#     float imperfection_blend = smoothstep(0.4, 0.9, combined_noise); // Smooth blending factor
+	smoothstep	imperfection_blend $const8 $const9 combined_noise 	%line{31} %argrw{"wrrr"}
+# surface_shader2.osl:32
+#     color imperfection_color = color(0.05, 0.05, 0.0); // Color for imperfections
+	assign		imperfection_color $const10 	%line{32} %argrw{"wr"}
+# surface_shader2.osl:33
+#     base_color = mix(base_color, imperfection_color, imperfection_blend);
+	mix		base_color base_color imperfection_color imperfection_blend 	%line{33} %argrw{"wrrr"}
+# surface_shader2.osl:36
+#     if (color_texture != "") {
+	neq		$tmp6 color_texture $const11 	%line{36} %argrw{"wrr"}
+	if		$tmp6 18 18 	%argrw{"r"}
+# surface_shader2.osl:37
+#         color texture_color = texture(color_texture, s, t);
+	texture		___325_texture_color color_texture s t 	%line{37} %argrw{"wrrr"} %argderivs{2,3}
+# surface_shader2.osl:39
+#         base_color = mix(base_color, texture_color, 0); 
+	mix		base_color base_color ___325_texture_color $const13 	%line{39} %argrw{"wrrr"}
+# surface_shader2.osl:43
+#     color spec_color = color(Ks);
+	assign		spec_color Ks 	%line{43} %argrw{"wr"}
+# surface_shader2.osl:44
+#     if (spec_texture != "") {
+	neq		$tmp7 spec_texture $const11 	%line{44} %argrw{"wrr"}
+	if		$tmp7 22 22 	%argrw{"r"}
+# surface_shader2.osl:45
+#         spec_color = texture(spec_texture, s, t);
+	texture		spec_color spec_texture s t 	%line{45} %argrw{"wrrr"} %argderivs{2,3}
+# surface_shader2.osl:49
+#     normal n = normalize(N);
+	normalize	n N 	%line{49} %argrw{"wr"}
+# surface_shader2.osl:50
+#     if (norm_texture != "") {
+	neq		$tmp8 norm_texture $const11 	%line{50} %argrw{"wrr"}
+	if		$tmp8 32 32 	%argrw{"r"}
+# surface_shader2.osl:51
+#         normal n_map = normalize(texture(norm_texture, s, t) * 2.0 - 1.0);
+	texture		$tmp9 norm_texture s t 	%line{51} %argrw{"wrrr"} %argderivs{2,3}
+	mul		$tmp10 $tmp9 $const14 	%argrw{"wrr"}
+	sub		$tmp11 $tmp10 $const15 	%argrw{"wrr"}
+	normalize	___327_n_map $tmp11 	%argrw{"wr"}
+# surface_shader2.osl:52
+#         n = normalize(n + n_map * noise_scale); // Combine with procedural noise
+	mul		$tmp12 ___327_n_map noise_scale 	%line{52} %argrw{"wrr"}
+	add		$tmp13 n $tmp12 	%argrw{"wrr"}
+	normalize	n $tmp13 	%argrw{"wr"}
+# surface_shader2.osl:56
+#     vector incident = normalize(-I);
+	neg		$tmp14 I 	%line{56} %argrw{"wr"}
+	normalize	incident $tmp14 	%argrw{"wr"}
+# surface_shader2.osl:57
+#     color diffuse_color = base_color * Kd;
+	mul		diffuse_color base_color Kd 	%line{57} %argrw{"wrr"}
+# surface_shader2.osl:59
+#     color specular_color = spec_color * Ks * pow(max(0, dot(normalize(incident), n)), 1.0 / roughness);
+	mul		$tmp15 spec_color Ks 	%line{59} %argrw{"wrr"}
+	normalize	$tmp19 incident 	%argrw{"wr"}
+	dot		$tmp18 $tmp19 n 	%argrw{"wrr"}
+	max		$tmp17 $const13 $tmp18 	%argrw{"wrr"}
+	div		$tmp20 $const15 roughness 	%argrw{"wrr"}
+	pow		$tmp16 $tmp17 $tmp20 	%argrw{"wrr"}
+	mul		specular_color $tmp15 $tmp16 	%argrw{"wrr"}
+# surface_shader2.osl:62
+#     color subsurface_color = subsurface_amount * diffuse_color * (1 - dot(N, I)); // Use "subsurface_amount" instead of "subsurface"
+	mul		$tmp21 subsurface_amount diffuse_color 	%line{62} %argrw{"wrr"}
+	dot		$tmp22 N I 	%argrw{"wrr"}
+	sub		$tmp23 $const15 $tmp22 	%argrw{"wrr"}
+	mul		subsurface_color $tmp21 $tmp23 	%argrw{"wrr"}
+# surface_shader2.osl:65
+#     resultRGB = diffuse_color + specular_color + subsurface_color;
+	add		$tmp24 diffuse_color specular_color 	%line{65} %argrw{"wrr"}
+	add		resultRGB $tmp24 subsurface_color 	%argrw{"wrr"}
+# surface_shader2.osl:66
+#     resultF = 1.0 - roughness;
+	sub		resultF $const15 roughness 	%line{66} %argrw{"wrr"}
+	end
