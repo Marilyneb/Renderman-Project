@@ -1,0 +1,67 @@
+shader avocado_texture1(
+    float Kd = 0.8,           
+    float Ks = 0.08,          
+    float roughness = 0.6,    
+    float noise_scale = 0.2,  
+    float subsurface_amount = 0.2,   
+    string envmap = "",       
+    string color_texture = "", 
+    string spec_texture = "",  
+    string norm_texture = "",  
+    output color resultRGB = 0,
+    output float resultF = 0
+)
+{
+    
+    float s = u;
+    float t = v;
+
+
+    color base_color = color(0.1, 0.07, 0.1);
+
+    // Generate noise for surface imperfections
+    float imperfection_noise = noise(P * noise_scale * 150);
+    float finer_noise = noise(P * noise_scale * 200);
+    float combined_noise = mix(imperfection_noise, finer_noise, 0.5);
+
+    
+    base_color *= color(0.1, 0.07, 0.0); 
+
+    
+    float imperfection_blend = smoothstep(0.4, 0.9, combined_noise); // Smooth blending factor
+    color imperfection_color = color(0.05, 0.05, 0.0); // Color for imperfections
+    base_color = mix(base_color, imperfection_color, imperfection_blend);
+
+    // Sample the color from the color texture
+    if (color_texture != "") {
+        color texture_color = texture(color_texture, s, t);
+        // Mix texture color with base color
+        base_color = mix(base_color, texture_color, 0); 
+    }
+
+    // Sample the specular color from the specular texture
+    color spec_color = color(Ks);
+    if (spec_texture != "") {
+        spec_color = texture(spec_texture, s, t);
+    }
+
+    // Normal mapping
+    normal n = normalize(N);
+    if (norm_texture != "") {
+        normal n_map = normalize(texture(norm_texture, s, t) * 2.0 - 1.0);
+        n = normalize(n + n_map * noise_scale); // Combine with procedural noise
+    }
+
+    // Shading calculations
+    vector incident = normalize(-I);
+    color diffuse_color = base_color * Kd;
+    // Reduced intensity of specular highlights
+    color specular_color = spec_color * Ks * pow(max(0, dot(normalize(incident), n)), 1.0 / roughness);
+
+    // Subsurface scattering effect
+    color subsurface_color = subsurface_amount * diffuse_color * (1 - dot(N, I)); 
+
+    // Combine diffuse, specular and subsurface contributions
+    resultRGB = diffuse_color + specular_color + subsurface_color;
+    resultF = 1.0 - roughness;
+}

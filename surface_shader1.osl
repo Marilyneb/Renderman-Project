@@ -1,0 +1,61 @@
+shader avocado_texture2(
+ float Kd = 0.8,          
+    float Ks = 0.2,          
+    float roughness = 0.1,   
+    float noise_scale = 0.2, 
+    string envmap = "",      
+    string color_texture = "", 
+    string spec_texture = "",  
+    string norm_texture = "",  
+    output color resultRGB = 0,
+    output float resultF = 0
+)
+{
+    
+    float s = u;
+    float t = v;
+
+    
+    color base_color = color(0.4, 0.2, 0.0);
+
+    
+    float imperfection_noise = noise(P * noise_scale * 100);
+
+   
+    base_color *= color(0.2, 0.3, 0.0); 
+
+    
+    float imperfection_blend = smoothstep(0.1, 0.8, imperfection_noise); 
+    color imperfection_color = color(0.2, 0.2, 0.0); 
+    base_color = mix(base_color, imperfection_color, imperfection_blend);
+
+    // Sample the color from the color texture
+    if (color_texture != "") {
+        color texture_color = texture(color_texture, s, t);
+        base_color = mix(base_color, texture_color, 0.3); // Mix texture color with base color
+    }
+
+    
+    color spec_color = color(Ks);
+    if (spec_texture != "") {
+        spec_color = texture(spec_texture, s, t);
+    }
+
+    // Normal mapping
+    normal n = normalize(N);
+    if (norm_texture != "") {
+        normal n_map = normalize(texture(norm_texture, s, t) * 2.0 - 1.0);
+        n = normalize(n + n_map * noise_scale); // Combine with procedural noise
+    }
+
+    // Shading calculations
+    vector incident = normalize(-I);
+    color diffuse_color = base_color * Kd;
+    color specular_color = spec_color * Ks * pow(max(0, dot(normalize(incident), n)), 1.0 / roughness);
+
+  
+
+    // Combine diffuse and specular contributions
+    resultRGB = diffuse_color + specular_color;
+    resultF = 1.0 - roughness;
+}

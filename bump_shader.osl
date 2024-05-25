@@ -1,0 +1,30 @@
+shader avocado_displacement(
+    float scale = 1.0,
+    float frequency = 25.0,
+    float amplitude = 0.05,
+    output color resultRGB = 0.0,
+    output float resultF = 0.0)
+{
+    float x = (P[0] + 1.0) * 0.5;
+    float y = (P[1] + 1.0) * 0.5;
+
+    // Layered noise for more complex surface texture
+    float avocado_disp_x = (1.0 - pow(x, 1.5)) * scale;
+    float avocado_disp_y = (1.0 - pow(y, 2.0)) * scale; 
+
+    float final_disp = avocado_disp_x * avocado_disp_y;
+
+    float noise_val = 0.0;
+    float freq = frequency;
+    float amp = amplitude;
+    for (int i = 0; i < 8; ++i) {
+        noise_val += noise(P * freq) * amp;
+        freq *= 2.0;
+        amp *= 0.5;
+    }
+
+    resultF = final_disp + noise_val;
+
+    float color_noise_val = noise(P * frequency * 0.1) * 0.1;
+    resultRGB = color(0.34 + color_noise_val, 0.5 + color_noise_val, 0.16 + color_noise_val);
+}
